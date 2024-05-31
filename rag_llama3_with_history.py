@@ -93,6 +93,10 @@ class RAG:
     def format_docs(self, documents):
         return "\n\n".join(doc.page_content for doc in documents)
 
+    def enrich_chat_history(self, inp):
+        user_input = "I am suffering from " + str(inp)
+        self.chat_history.append(HumanMessage(content=user_input))
+
     def generate_response(self, query):
         chat_history = self.chat_history
 
@@ -122,9 +126,13 @@ class RAG:
 
 if __name__ == '__main__':
     rag = RAG()
+
+    problem = input("Enter disease: ")
+    rag.enrich_chat_history(problem)
+
     while True:
-        input_query = input("Enter your question: ")
+        input_query = input("\nEnter your question: ")
         if input_query.lower() == "exit":
             break
         print("\nLLM Response:")
-        print(rag.generate_response(input_query), "\n")
+        print(rag.generate_response(input_query))
