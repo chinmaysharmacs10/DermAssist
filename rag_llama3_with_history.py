@@ -12,22 +12,20 @@ from langchain_core.messages import HumanMessage
 
 import os
 import warnings
+import utils
+
 warnings.filterwarnings('ignore')
 
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGCHAIN_API_KEY"] = "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"
 
-embed_model_id = 'sentence-transformers/all-MiniLM-L6-v2'
-
-urls = [
-    "https://www.aad.org/public/diseases/acne/diy/adult-acne-treatment",
-    "https://www.aad.org/public/diseases/a-z/ringworm-treatment",
-    "https://www.aad.org/public/everyday-care/hair-scalp-care/scalp/treat-dandruff",
-]
+embedding_model_id = 'sentence-transformers/all-MiniLM-L6-v2'
+embedding_cache = "./cache/"
 
 
 def get_document_retriever():
+    urls = utils.get_doc_urls()
     docs = [WebBaseLoader(url).load() for url in urls]
     docs_list = [item for sublist in docs for item in sublist]
 
@@ -35,15 +33,9 @@ def get_document_retriever():
         chunk_size=250, chunk_overlap=0
     )
 
-    store = LocalFileStore("./cache/")
-
-    core_embeddings_model = HuggingFaceEmbeddings(
-        model_name=embed_model_id
-    )
-
-    embedder = CacheBackedEmbeddings.from_bytes_store(
-        core_embeddings_model, store, namespace=embed_model_id
-    )
+    store = LocalFileStore(embedding_cache)
+    core_embeddings_model = HuggingFaceEmbeddings(model_name=embedding_model_id)
+    embedder = CacheBackedEmbeddings.from_bytes_store(core_embeddings_model, store, namespace=embedding_model_id)
 
     doc_splits = text_splitter.split_documents(docs_list)
     vector_store = FAISS.from_documents(documents=doc_splits, embedding=embedder)
