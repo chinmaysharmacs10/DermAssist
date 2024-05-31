@@ -1,17 +1,21 @@
-import os
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.embeddings import CacheBackedEmbeddings
 from langchain.storage import LocalFileStore
-from langchain_core.runnables import RunnablePassthrough
-from langchain_core.output_parsers import StrOutputParser
 from langchain_community.chat_models import ChatOllama
 from langchain_core.prompts import PromptTemplate, ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain.chains.history_aware_retriever import create_history_aware_retriever
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains import create_retrieval_chain
+from langchain_core.runnables.history import RunnableWithMessageHistory
 
+import os
+import streamlit as st
+import warnings
+warnings.filterwarnings('ignore')
 
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
@@ -21,6 +25,7 @@ embed_model_id = 'sentence-transformers/all-MiniLM-L6-v2'
 
 urls = [
     "https://www.aad.org/public/diseases/acne/diy/adult-acne-treatment",
+    "https://www.aad.org/public/diseases/a-z/ringworm-treatment",
 ]
 
 
@@ -54,7 +59,7 @@ def get_prompt():
         template="""<|begin_of_text|><|start_header_id|>system<|end_header_id|> You are an assistant for question-answering tasks. 
             Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. 
             Use three sentences maximum and keep the answer concise <|eot_id|><|start_header_id|>user<|end_header_id|>
-            Question: {question} 
+            Question: {input} 
             Context: {context} 
             Answer: <|eot_id|><|start_header_id|>assistant<|end_header_id|>""",
         input_variables=["question", "document"],
@@ -73,18 +78,35 @@ class RAG:
         return "\n\n".join(doc.page_content for doc in documents)
 
     def generate_response(self, query):
-        rag_chain = (
-                {"context": self.retriever | self.format_docs, "question": RunnablePassthrough()}
-                | self.prompt
-                | self.llm
-                | StrOutputParser()
+        chat_history = self.chat_history
+        retriever_prompt = ChatPromptTemplate.from_messages(
+            [
+                MessagesPlaceholder(variable_name="chat_history"),
+                ("human", "{input}"),
+                (
+                    "human",
+                    "Given a chat history and the latest user question \
+                    which might reference context in the chat history, formulate a standalone question \
+                    which can be understood without the chat history. Do NOT answer the question, \
+                    just reformulate it if needed and otherwise return it as is."
+                ),
+            ]
         )
-        response = rag_chain.invoke(query)
+
+        history_aware_retriever = create_history_aware_retriever(
+            llm=self.llm, retriever=self.retriever, prompt=retriever_prompt
+        )
+
+        document_chain = create_stuff_documents_chain(llm=self.llm, prompt=self.prompt)
+
+        rag_chain = create_retrieval_chain(history_aware_retriever, document_chain)
+
+        response = rag_chain.invoke({"input": query})
 
         self.chat_history.append(HumanMessage(content=query))
-        self.chat_history.append(AIMessage(content=response))
+        self.chat_history.append(AIMessage(content=response["answer"]))
 
-        return response
+        return response["answer"]
 
 
 if __name__ == '__main__':
@@ -95,3 +117,6 @@ if __name__ == '__main__':
             break
         print("\nLLM Response:")
         print(rag.generate_response(input_query), "\n")
+
+    # print(rag.generate_response("what non-prescription treatments can I use to treat?"))
+    # print(rag.generate_response("what do those treatments contain?"))
