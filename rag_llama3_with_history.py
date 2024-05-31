@@ -86,6 +86,7 @@ class RAG:
         self.retriever = get_document_retriever()
         self.llm_prompt = get_llm_prompt()
         self.retriever_prompt = get_retriever_prompt()
+        self.output_parser = StrOutputParser()
         self.chat_history = []
 
     def format_docs(self, documents):
@@ -94,7 +95,7 @@ class RAG:
     def generate_response(self, query):
         chat_history = self.chat_history
 
-        contextualize_q_chain = self.retriever_prompt | self.llm | StrOutputParser()
+        contextualize_q_chain = self.retriever_prompt | self.llm | self.output_parser
 
         def contextualized_question(inp: dict):
             if inp.get("chat_history"):
@@ -107,15 +108,15 @@ class RAG:
                 )
                 | self.llm_prompt
                 | self.llm
+                | self.output_parser
         )
 
-        chain_response = rag_chain.invoke({"input": query, "chat_history": chat_history})
-        llm_response = chain_response.to_json()["kwargs"]["content"]
+        response = rag_chain.invoke({"input": query, "chat_history": chat_history})
 
         self.chat_history.append(HumanMessage(content=query))
-        self.chat_history.append(llm_response)
+        self.chat_history.append(response)
 
-        return llm_response
+        return response
 
 
 if __name__ == '__main__':
