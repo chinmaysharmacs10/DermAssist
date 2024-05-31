@@ -67,7 +67,6 @@ class RAG:
         self.llm = ChatOllama(model="llama3", temperature=0)
         self.retriever = get_document_retriever()
         self.prompt = get_prompt()
-        self.chat_history = []
 
     def format_docs(self, documents):
         return "\n\n".join(doc.page_content for doc in documents)
@@ -80,9 +79,6 @@ class RAG:
                 | StrOutputParser()
         )
         response = rag_chain.invoke(query)
-
-        self.chat_history.append(HumanMessage(content=query))
-        self.chat_history.append(AIMessage(content=response))
 
         return response
 
