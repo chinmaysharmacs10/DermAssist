@@ -44,7 +44,7 @@ def get_document_retriever():
     return retriever
 
 
-def get_qa_prompt():
+def get_llm_prompt():
     prompt = """You are an assistant for question-answering tasks. \
                 Use the following pieces of retrieved context to answer the question. \
                 If you don't know the answer, just say that you don't know. \
@@ -52,7 +52,15 @@ def get_qa_prompt():
 
                 {context}"""
 
-    return prompt
+    llm_prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", prompt),
+            MessagesPlaceholder(variable_name="chat_history"),
+            ("human", "{input}"),
+        ]
+    )
+
+    return llm_prompt
 
 
 def get_retriever_prompt():
@@ -60,14 +68,23 @@ def get_retriever_prompt():
                     which might reference context in the chat history, formulate a standalone question \
                     which can be understood without the chat history. Do NOT answer the question, \
                     just reformulate it if needed and otherwise return it as is."""
-    return prompt
+
+    retriever_prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", prompt),
+            MessagesPlaceholder(variable_name="chat_history"),
+            ("human", "{input}"),
+        ]
+    )
+
+    return retriever_prompt
 
 
 class RAG:
     def __init__(self):
         self.llm = ChatOllama(model="llama3", temperature=0)
         self.retriever = get_document_retriever()
-        self.llm_prompt = get_qa_prompt()
+        self.llm_prompt = get_llm_prompt()
         self.retriever_prompt = get_retriever_prompt()
         self.chat_history = []
 
@@ -76,35 +93,19 @@ class RAG:
 
     def generate_response(self, query):
         chat_history = self.chat_history
-        retriever_prompt = ChatPromptTemplate.from_messages(
-            [
-                ("system", self.retriever_prompt),
-                MessagesPlaceholder(variable_name="chat_history"),
-                ("human", "{input}"),
-            ]
-        )
 
-        llm_prompt = ChatPromptTemplate.from_messages(
-            [
-                ("system", self.llm_prompt),
-                MessagesPlaceholder(variable_name="chat_history"),
-                ("human", "{input}"),
-            ]
-        )
-
-        contextualize_q_chain = retriever_prompt | self.llm | StrOutputParser()
+        contextualize_q_chain = self.retriever_prompt | self.llm | StrOutputParser()
 
         def contextualized_question(inp: dict):
             if inp.get("chat_history"):
                 return contextualize_q_chain
-            else:
-                return inp["input"]
+            return inp["input"]
 
         rag_chain = (
                 RunnablePassthrough.assign(
                     context=contextualized_question | self.retriever | self.format_docs
                 )
-                | llm_prompt
+                | self.llm_prompt
                 | self.llm
         )
 
