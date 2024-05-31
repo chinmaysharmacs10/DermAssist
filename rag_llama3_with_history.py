@@ -18,6 +18,7 @@ warnings.filterwarnings('ignore')
 
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
+os.environ["LANGCHAIN_PROJECT"] = "DermAssist"
 os.environ["LANGCHAIN_API_KEY"] = "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"
 
 embedding_model_id = 'sentence-transformers/all-MiniLM-L6-v2'
