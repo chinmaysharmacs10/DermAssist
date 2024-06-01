@@ -66,9 +66,9 @@ def get_llm_prompt():
 
 def get_retriever_prompt():
     prompt = """Given a chat history and the latest user question \
-                    which might reference context in the chat history, formulate a standalone question \
-                    which can be understood without the chat history. Do NOT answer the question, \
-                    just reformulate it if needed and otherwise return it as is."""
+                which might reference context in the chat history, formulate a standalone question \
+                which can be understood without the chat history. Do NOT answer the question, \
+                just reformulate it if needed and otherwise return it as is."""
 
     retriever_prompt = ChatPromptTemplate.from_messages(
         [
@@ -89,6 +89,20 @@ class RAG:
         self.retriever_prompt = get_retriever_prompt()
         self.output_parser = StrOutputParser()
         self.chat_history = []
+        self.contextualize_query_chain = self.retriever_prompt | self.llm | self.output_parser
+        self.rag_chain = (
+                RunnablePassthrough.assign(
+                    context=self.contextualized_question | self.retriever | self.format_docs
+                )
+                | self.llm_prompt
+                | self.llm
+                | self.output_parser
+        )
+
+    def contextualized_question(self, inp: dict):
+        if inp.get("chat_history"):
+            return self.contextualize_query_chain
+        return inp["input"]
 
     def format_docs(self, documents):
         return "\n\n".join(doc.page_content for doc in documents)
@@ -98,25 +112,7 @@ class RAG:
         self.chat_history.append(HumanMessage(content=user_input))
 
     def generate_response(self, query):
-        chat_history = self.chat_history
-
-        contextualize_q_chain = self.retriever_prompt | self.llm | self.output_parser
-
-        def contextualized_question(inp: dict):
-            if inp.get("chat_history"):
-                return contextualize_q_chain
-            return inp["input"]
-
-        rag_chain = (
-                RunnablePassthrough.assign(
-                    context=contextualized_question | self.retriever | self.format_docs
-                )
-                | self.llm_prompt
-                | self.llm
-                | self.output_parser
-        )
-
-        response = rag_chain.invoke({"input": query, "chat_history": chat_history})
+        response = self.rag_chain.invoke({"input": query, "chat_history": self.chat_history})
 
         self.chat_history.append(HumanMessage(content=query))
         self.chat_history.append(response)
