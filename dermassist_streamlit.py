@@ -6,7 +6,8 @@ from rag_system import RAG
 
 
 class DermAssist:
-    def __init__(self, image_save_dir):
+    def __init__(self, image_save_dir, dermassist_logo):
+        self.dermassist_logo = dermassist_logo
         self.uploaded_file = None
         self.image = None
         self.image_save_dir = image_save_dir
@@ -66,18 +67,35 @@ class DermAssist:
 
             st.session_state.chat_history.append(AIMessage(content=rag_response))
 
-    def run(self):
+    def setup_page(self):
         st.set_page_config(page_title="DermAssist", page_icon="⚕️")
-        # st.title("DermAssist")
-        st.markdown('<h1 style="text-align: center;">'
-                    '<span style="color: blue;">Derm</span>'
-                    '<span style="color: red;">Assist</span>'
-                    '</h1>', unsafe_allow_html=True)
+
+        left, center, right = st.columns(3)
+        logo = Image.open(self.dermassist_logo)
+        with center:
+            st.image(logo, width=200)
+
+        st.markdown(
+            """
+            <h1 style="text-align: center;">
+                <span style="color: white;">Derm</span>
+                <span style="color: red;">Assist</span>
+            </h1>
+            <h3 style="text-align: center;">
+                Your AI Assistant for Skin Problems
+            </h3>
+            <br>
+            """,
+            unsafe_allow_html=True
+        )
+
+    def run(self):
+        self.setup_page()
 
         if self.upload_image():
             self.display_image()
         else:
-            st.info("Please upload an image of the affected area to perform diagnosis and conversation.")
+            st.info("Please upload an image of the affected area to perform diagnosis and ask questions.")
             st.stop()
 
         # TODO: call vision model with self.image_save_path as input
@@ -91,5 +109,6 @@ class DermAssist:
 
 if __name__ == '__main__':
     images_folder = "/Users/chinmaysharma/Documents/DermAssist/images"
-    dermassist = DermAssist(image_save_dir=images_folder)
+    dermassist_logo = "/Users/chinmaysharma/Documents/DermAssist/derm_assist_logo.png"
+    dermassist = DermAssist(image_save_dir=images_folder, dermassist_logo=dermassist_logo)
     dermassist.run()
