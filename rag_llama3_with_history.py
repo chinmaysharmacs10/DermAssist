@@ -121,6 +121,10 @@ class RAG:
 
         return response
 
+    def generate_response_streamlit(self, query, chat_history):
+        response = self.rag_chain.stream({"input": query, "chat_history": chat_history})
+        return response
+
 
 if __name__ == '__main__':
     rag = RAG()
