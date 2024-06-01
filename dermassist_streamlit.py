@@ -6,13 +6,15 @@ from rag_system import RAG
 
 
 class DermAssist:
-    def __init__(self, image_save_dir, dermassist_logo):
+    def __init__(self, image_save_dir, dermassist_logo, skin_disease=None):
         self.dermassist_logo = dermassist_logo
         self.uploaded_file = None
         self.image = None
         self.image_save_dir = image_save_dir
         self.image_save_path = None
         self.rag = RAG()
+        self.vision_model = None
+        self.skin_disease = skin_disease
 
     def create_directory(self):
         if not os.path.exists(self.image_save_dir):
@@ -99,16 +101,15 @@ class DermAssist:
             st.stop()
 
         # TODO: call vision model with self.image_save_path as input
-        # vision_model_response = self.vision_model(self.image_save_path)
-        # self.initialize_chat_history(skin_disease=vision_model_response)
+        # self.skin_disease = self.vision_model(self.image_save_path)
 
-        self.initialize_chat_history(skin_disease="acne")
+        self.initialize_chat_history(skin_disease=self.skin_disease)
         self.display_chat()
         self.handle_user_input()
 
 
 if __name__ == '__main__':
-    images_folder = "/Users/chinmaysharma/Documents/DermAssist/images"
-    dermassist_logo = "/Users/chinmaysharma/Documents/DermAssist/derm_assist_logo.png"
-    dermassist = DermAssist(image_save_dir=images_folder, dermassist_logo=dermassist_logo)
+    images_folder = "./images"
+    dermassist_logo = "./derm_assist_logo.png"
+    dermassist = DermAssist(image_save_dir=images_folder, dermassist_logo=dermassist_logo, skin_disease="acne")
     dermassist.run()
