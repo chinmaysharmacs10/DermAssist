@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 from PIL import Image
 from langchain_core.messages import HumanMessage, AIMessage
@@ -13,12 +14,20 @@ if __name__ == '__main__':
     uploaded_file = st.file_uploader("Upload an image of the affected area", type=["jpg", "jpeg", "png"])
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
+
+        image_save_dir = "/Users/chinmaysharma/Documents/DermAssist/images"
+        if not os.path.exists(image_save_dir):
+            os.makedirs(image_save_dir)
+
+        image_save_path = os.path.join(image_save_dir, uploaded_file.name)
+        with open(image_save_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
             st.image(image, caption="Uploaded Image", use_column_width=True)
-        st.write("Filename:", uploaded_file.name)
     else:
-        st.info("Please upload an image to continue")
+        st.info("Please upload an image of the affected area to perform diagnosis and conversation.")
         st.stop()
 
     if "chat_history" not in st.session_state:
