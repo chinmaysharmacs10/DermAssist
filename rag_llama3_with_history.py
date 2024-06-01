@@ -8,7 +8,7 @@ from langchain.embeddings import CacheBackedEmbeddings
 from langchain.storage import LocalFileStore
 from langchain_community.chat_models import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, AIMessage
 
 import os
 import warnings
@@ -107,15 +107,17 @@ class RAG:
     def format_docs(self, documents):
         return "\n\n".join(doc.page_content for doc in documents)
 
-    def enrich_chat_history(self, inp):
-        user_input = "I am suffering from " + str(inp)
-        self.chat_history.append(HumanMessage(content=user_input))
+    def enrich_chat_history_human(self, inp):
+        self.chat_history.append(HumanMessage(content=inp))
+
+    def enrich_chat_history_ai(self, inp):
+        self.chat_history.append(AIMessage(content=inp))
 
     def generate_response(self, query):
         response = self.rag_chain.invoke({"input": query, "chat_history": self.chat_history})
 
-        self.chat_history.append(HumanMessage(content=query))
-        self.chat_history.append(response)
+        self.enrich_chat_history_human(query)
+        self.enrich_chat_history_ai(response)
 
         return response
 
@@ -123,8 +125,9 @@ class RAG:
 if __name__ == '__main__':
     rag = RAG()
 
-    problem = input("Enter disease: ")
-    rag.enrich_chat_history(problem)
+    disease = input("Enter disease: ")
+    user_disease = "I am suffering from " + str(disease)
+    rag.enrich_chat_history_human(user_disease)
 
     while True:
         input_query = input("\nEnter your question: ")
