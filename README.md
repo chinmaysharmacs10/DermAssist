@@ -22,7 +22,7 @@ and suggest remedies.
 ## Vector Store Pipeline
 ![Vector_Store_Pipeline](./media/dermassist_data.png)
 
-### Steps to run DermAssist locally
+## Steps to run DermAssist locally
 
 Clone the repository:
 ```commandline
@@ -58,7 +58,7 @@ To start StreamLit server:
 streamlit run dermassist_streamlit.py
 ```
 
-### References
+## References
 1. Xuhui Li, Xinyu Zhao, Haoran Ma, and Bin Xie. Image analysis and diagnosis of skin diseases-a
 review. Current Medical Imaging, 19(3):199–242, 2023.
 2. Elizabeth Uhlenhake, Robert Brodell, and Eliot Mostow. The dermatology work force: a focus on
