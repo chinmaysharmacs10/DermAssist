@@ -1,6 +1,6 @@
 <img src="media/dermassist_readme_title.png" alt="Title Image" style="width: 100%;">
 
-### Your AI Assitant for Skin Problems
+## Your AI Assitant for Skin Problems
 Skin diseases are a common problems and affect about 20-25% of global population annually [1]. 
 However, due to dermatologist shortage, patients suffer long waiting time for scheduling an appointment 
 (averaging 36 days in the US) [2]. This causes a significant amount of stress in patients and delay in diagnosis and 
@@ -11,7 +11,7 @@ till they visit the dermatologist.
 a Retrieval-Augmented Generation (RAG) system enriched with reliable dermatological knowledge to conduct a conversation 
 and suggest remedies.
 
-### Table of Content
+## Table of Content
 - [Architecture](#architecture)
 - [Vector Store Pipeline](#vector-store-pipeline)
 - [Steps to run DermAssist locally](#steps-to-run-dermassist-locally)
