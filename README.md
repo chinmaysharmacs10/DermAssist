@@ -1,5 +1,11 @@
 # DermAssist
 
+## Architecture
+![DermAssist Architecture](./media/dermassist_arch.png)
+
+## Vector Store Pipeline
+![Vector_Store_Pipeline](./media/dermassist_data.png)
+
 ### Steps to run DermAssist locally
 
 Clone the repository:

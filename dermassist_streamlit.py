@@ -110,6 +110,6 @@ class DermAssist:
 
 if __name__ == '__main__':
     images_folder = "./images"
-    dermassist_logo_path = "./derm_assist_logo.png"
+    dermassist_logo_path = "./media/derm_assist_logo.png"
     dermassist = DermAssist(image_save_dir=images_folder, dermassist_logo=dermassist_logo_path, skin_disease="acne")
     dermassist.run()
