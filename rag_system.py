@@ -21,6 +21,7 @@ os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGCHAIN_PROJECT"] = "DermAssist"
 os.environ["LANGCHAIN_API_KEY"] = "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"
 
+llm_model = "llama3"
 embedding_model_id = 'sentence-transformers/all-MiniLM-L6-v2'
 embedding_cache = "./cache/"
 
@@ -83,7 +84,7 @@ def get_retriever_prompt():
 
 class RAG:
     def __init__(self):
-        self.llm = ChatOllama(model="llama3", temperature=0)
+        self.llm = ChatOllama(model=llm_model, temperature=0)
         self.retriever = get_document_retriever()
         self.llm_prompt = get_llm_prompt()
         self.retriever_prompt = get_retriever_prompt()
@@ -104,7 +105,8 @@ class RAG:
             return self.contextualize_query_chain
         return inp["input"]
 
-    def format_docs(self, documents):
+    @staticmethod
+    def format_docs(documents):
         return "\n\n".join(doc.page_content for doc in documents)
 
     def enrich_chat_history_human(self, inp):

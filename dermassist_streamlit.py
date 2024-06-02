@@ -43,7 +43,8 @@ class DermAssist:
     @staticmethod
     def initialize_chat_history(skin_disease):
         if "chat_history" not in st.session_state:
-            initial_context = f"You are suffering with {skin_disease}"
+            skin_diseases = " and ".join(skin_disease)
+            initial_context = f"You are suffering with {skin_diseases}"
             st.session_state.chat_history = [AIMessage(content=initial_context)]
 
     @staticmethod
@@ -111,5 +112,6 @@ class DermAssist:
 if __name__ == '__main__':
     images_folder = "./images"
     dermassist_logo_path = "./media/derm_assist_logo.png"
-    dermassist = DermAssist(image_save_dir=images_folder, dermassist_logo=dermassist_logo_path, skin_disease="acne")
+    dermassist = DermAssist(image_save_dir=images_folder, dermassist_logo=dermassist_logo_path,
+                            skin_disease=["acne"])
     dermassist.run()
