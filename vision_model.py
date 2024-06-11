@@ -38,7 +38,7 @@ def load_image(image_path):
 
 # Load the model and make inference
 def perform_inference(img):
-    model = torch.load("model.bin").to(DEVICE)
+    model = torch.load("model.bin", map_location=torch.device('cpu')).to(DEVICE)
     model.eval()
     with torch.no_grad():
         model_output = torch.sigmoid(model(img)).cpu().numpy()
@@ -51,7 +51,7 @@ def perform_inference(img):
         return labels
     
 if __name__=="__main__":
-    image_path = "/path/to/image"
+    image_path = "images/eczema.png"
     img = load_image(image_path)
     labels = perform_inference(img)
     print(labels)
