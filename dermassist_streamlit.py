@@ -3,6 +3,7 @@ import streamlit as st
 from PIL import Image
 from langchain_core.messages import HumanMessage, AIMessage
 from rag_system import RAG
+from vision_model import VisionModel
 
 
 class DermAssist:
@@ -13,7 +14,7 @@ class DermAssist:
         self.image_save_dir = image_save_dir
         self.image_save_path = None
         self.rag = RAG()
-        self.vision_model = None
+        self.vision_model = VisionModel()
         self.skin_disease = skin_disease
 
     def create_directory(self):
@@ -101,9 +102,7 @@ class DermAssist:
             st.info("Please upload an image of the affected area to perform diagnosis and ask questions.")
             st.stop()
 
-        # TODO: call vision model with self.image_save_path as input
-        # self.skin_disease = self.vision_model(self.image_save_path)
-
+        self.skin_disease = self.vision_model.predict(self.image_save_path)
         self.initialize_chat_history(skin_disease=self.skin_disease)
         self.display_chat()
         self.handle_user_input()
@@ -112,6 +111,5 @@ class DermAssist:
 if __name__ == '__main__':
     images_folder = "./images"
     dermassist_logo_path = "./media/derm_assist_logo.png"
-    dermassist = DermAssist(image_save_dir=images_folder, dermassist_logo=dermassist_logo_path,
-                            skin_disease=["acne"])
+    dermassist = DermAssist(image_save_dir=images_folder, dermassist_logo=dermassist_logo_path)
     dermassist.run()
