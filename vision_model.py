@@ -2,6 +2,7 @@ from PIL import Image
 import torch
 import torchvision.transforms as transforms
 
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 THRESHOLD = 0.4
 ALL_LABELS = ['Abrasion, scrape, or scab', 'Abscess', 'Acne',
        'Acute and chronic dermatitis', 'Acute dermatitis, NOS',
@@ -32,25 +33,23 @@ def load_image(image_path):
                 transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                         std=[0.229, 0.224, 0.225])
                 ])
-    img = transform(Image.open(image_path))
+    img = transform(Image.open(image_path)).unsqueeze(0).to(DEVICE)
     return img
 
 # Load the model and make inference
 def perform_inference(img):
-    model = torch.load("model.bin")
+    model = torch.load("model.bin").to(DEVICE)
     model.eval()
-    model_output = torch.sigmoid(model(img))
-
-    binary_output = (model_output > THRESHOLD).astype(int)
-
-    # Convert binary to labels
-    labels = []
-    labels = list(filter(lambda x: binary_output[ALL_LABELS.index(x)] == 1, ALL_LABELS))
-    return labels
-
-
-
-
+    with torch.no_grad():
+        model_output = torch.sigmoid(model(img)).cpu().numpy()
+        binary_output = (model_output > THRESHOLD).astype(int).squeeze()
+        # Convert binary to labels
+        labels = []
+        for index in range(len(binary_output)):
+            if binary_output[index]==1:
+                labels.append(ALL_LABELS[index])
+        return labels
+    
 if __name__=="__main__":
     image_path = "/path/to/image"
     img = load_image(image_path)
