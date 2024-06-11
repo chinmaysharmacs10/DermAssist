@@ -49,8 +49,7 @@ def perform_inference(img):
             if binary_output[index]==1:
                 labels.append(ALL_LABELS[index])
         return labels
-
-
+    
 if __name__=="__main__":
     image_path = "/path/to/image"
     img = load_image(image_path)
