@@ -38,7 +38,7 @@ def load_image(image_path):
 
 # Load the model and make inference
 def perform_inference(img):
-    model = torch.load("final_model.bin").to(DEVICE)
+    model = torch.load("model.bin").to(DEVICE)
     model.eval()
     with torch.no_grad():
         model_output = torch.sigmoid(model(img)).cpu().numpy()
